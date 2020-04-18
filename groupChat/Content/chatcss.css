@@ -1,0 +1,102 @@
+﻿.bubble-dialog {
+    white-space: pre-line;
+    line-height: 0;
+}
+.label-text{
+    font-size: 1.2em !important;
+}
+.chat-display-border {
+    border: 2px solid #0400ff;
+    min-height: 200px;
+}
+.bubble-left,
+.bubble-right {
+    line-height: 100%;
+    display: block;
+    position: relative;
+    padding: 1.25em 0.5em;
+    -webkit-border-radius: 11px;
+    -moz-border-radius: 11px;
+    border-radius: 11px;
+    margin-bottom: 2em;
+    clear: both;
+    max-width: 50%;
+}
+
+p {
+    margin-bottom: 0;
+}
+
+.bubble-left {
+    float: left;
+    margin-right: 10%;
+    background: pink;
+    border: red solid 3px;
+}
+
+.bubble-right {
+    float: right;
+    margin-left: 10% ;
+    background: #b6ff00;
+    border: #0d891b solid 3px;
+}
+
+    .bubble-left:after,
+    .bubble-left:before,
+    .bubble-right:after,
+    .bubble-right:before {
+        content: "";
+        position: absolute;
+        top: 21px;
+        border-style: solid;
+        border-width: 13px 17px 13px 0;
+        border-color: transparent pink;
+        display: block;
+        width: 0;
+    }
+
+.bubble-left:after,
+.bubble-left:before {
+    border-width: 13px 17px 13px 0;
+    border-color: transparent pink;
+}
+
+.bubble-right:after,
+.bubble-right:before {
+    border-width: 13px 0 13px 17px;
+    border-color: transparent pink;
+}
+
+.bubble-left:after {
+    left: -16px;
+    border-color: transparent pink;
+    z-index: 1;
+}
+
+.bubble-left:before {
+    left: -19px;
+    border-color: transparent red;
+    z-index: 0;
+}
+
+.bubble-right:after {
+    right: -16px;
+    border-color: transparent #b6ff00;
+    z-index: 1;
+}
+
+.bubble-right:before {
+    right: -19px;
+    border-color: transparent #b6ff00;
+    z-index: 0;
+}
+.Fcolor {
+    color: white;
+}
+
+    .Fcolor:hover {
+        color: green;
+}
+.text-success {
+    color: #00d804 !important;
+}

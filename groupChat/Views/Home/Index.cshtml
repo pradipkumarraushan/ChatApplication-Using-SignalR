@@ -1,0 +1,370 @@
+﻿@model groupChat.Models.WebsiteVistorData
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<link href="~/Content/sweetalert.css" rel="stylesheet" />
+<link href="~/Content/chatcss.css" rel="stylesheet" />
+
+<div class="pull-right">
+    <h3>NAME : <span class="label label-success label-text txtName"></span></h3>
+    <input type="hidden" id="txtName" />
+</div>
+<br />
+<br />
+<br />
+
+<input type="hidden" id="URL" />
+<input type="hidden" id="ip" value="@Model.Ip"/>
+<input type="hidden" id="city" value="@Model.City"/>
+<input type="hidden" id="region" value="@Model.RegionName"/>
+<input type="hidden" id="country" value="@Model.Country"/>
+<input type="hidden" id="loc" value="@Model.Lat @Model.Lon"/>
+<input type="hidden" id="org" value="@Model.Org"/>
+<input type="hidden" id="postal" value="@Model.Zip"/>
+<input type="hidden" id="mac" value="@Model.MacId" />
+<input type="hidden" id="clientMachineName" value="@Model.ClientMachineName" />
+<input type="hidden" id="HTTP_USER_AGENT" />
+<input type="hidden" id="HTTP_REFERER" />
+
+@*<input type="hidden" id="URL" />
+<input type="hidden" id="ip" />
+<input type="hidden" id="city" />
+<input type="hidden" id="region" />
+<input type="hidden" id="country" />
+<input type="hidden" id="loc" />
+<input type="hidden" id="org" />
+<input type="hidden" id="postal" />
+<input type="hidden" id="HTTP_USER_AGENT" />
+<input type="hidden" id="HTTP_REFERER" />*@
+
+<div class="container form-horizontal">
+    <!------------------------------GROUP CHAT ------------------------------------------>
+
+    <h2 class="text-center">Group Chat</h2>
+
+
+    <pre class="text-center text-success">Your Conn ID :<span id="connId" class="label label-success label-text"></span>&nbsp;<input class="btn btn-primary" type="button" id="copyId" value="Copy" /></pre><br />
+    <pre class="text-center text-success">Your Joined Group :<span id="joinedGroup" class="label label-success label-text"></span></pre><br />
+
+
+
+    <div class="form-group">
+        <label class="control-label col-sm-2" for="txtGroupName">Create Group :</label>
+        <div class="col-sm-5">
+            <input type="text" class="form-control" id="txtGroupName" value="Group1" placeholder="Enter Group Name">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-sm-2" for="txtMessage">Message:</label>
+        <div class="col-sm-5">
+            <textarea class="form-control" rows="5" id="txtMessage"></textarea>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <input type="button" class="btn btn-primary" id="broadcastGroupMessage" value="Send Message" />
+        </div>
+    </div>
+    <div class="container-fluid chat-display-border">
+        <h3 class="text-center text-success">Real-time Group Chat Conversation Of Group - <span class="joinedGroup text-success"></span></h3>
+        <br />
+        <div id="messagesGroup" class="bubble-dialog"></div>
+    </div>
+
+</div>
+
+<!----------------------------------------PRIVATE CHAT ---------------------------------------------------------------------->
+<div class="container form-horizontal">
+    <h2 class="text-center">Private Chat</h2>
+
+    <div class="form-group">
+        <label class="control-label col-sm-2" for="txtFriendUniqueId">Friend Conn ID:</label>
+        <div class="col-sm-5">
+            <input type="text" class="form-control" id="txtFriendUniqueId" placeholder="Enter Friend Connection ID">
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label class="control-label col-sm-2" for="txtMessagePvt">Message:</label>
+        <div class="col-sm-5">
+            <textarea class="form-control" rows="5" id="txtMessagePvt"></textarea>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <input type="button" class="btn btn-primary" id="broadcastPvtMessage" value="Send Private Message" />
+        </div>
+    </div>
+    <div class="container-fluid chat-display-border">
+        <h3 class="text-center text-success">Real-time Private Chat Conversation With UserID : <br /><span class="txtFriendUniqueId text-success"></span></h3>
+        <br />
+        <div id="messagesPvt" class="bubble-dialog"></div>
+    </div>
+</div>
+<!--------------------------------------------Real-time Clients Chat Conversation---------------------------------------------------------->
+<div class="container form-horizontal">
+    <h2 class="text-center">Clients Chat</h2>
+
+    <div class="form-group">
+        <label class="control-label col-sm-2" for="txtMessageClient">Message:</label>
+        <div class="col-sm-5">
+            <textarea class="form-control" rows="5" id="txtMessageClient"></textarea>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <input type="button" class="btn btn-primary" id="broadcastClientMessage" value="Send Client Message" />
+        </div>
+    </div>
+    <div class="container-fluid chat-display-border">
+        <h3 class="text-center text-success">Real-time Clients Chat Conversation</h3>
+        <br />
+        <div id="messagesClient" class="bubble-dialog"></div>
+    </div>
+</div>
+
+<!--------------------------------------------------------------------------------------------------------------------------------------->
+
+
+@section scripts {
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <!--sweetalert UI javascript-->
+    <script src="~/Content/sweetalert.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.1.min.js"></script>
+    <!--Reference the autogenerated SignalR hub script. -->
+    <script src="~/signalr/hubs"></script>
+    <script type="text/javascript">
+        $(function () {
+            // Proxy created on Page Load
+            var chat = $.connection.letsChatHub;
+
+            /*----------Declare a function on the chat hub so the server can invoke it for Group Chat----------------*/
+            chat.client.addNewGroupMessageToPage = function (name, message) {
+
+                $('#messagesGroup').append('<div class="bubble-left">' + name + ' : ' + message + '<br>' + currentTime() + '</div>');
+            };
+
+
+            /*------------ Declare a function on the chat hub so the server can invoke it for Private Chat------------------*/
+            chat.client.addNewPrivateMessageToPage = function (name, message, senderconnId) {
+                if (senderconnId != $("#connId").text()) {
+
+                    $('#messagesPvt').append('<div class="bubble-left">' + name + ' : ' + message + '<br>' + currentTime() + '</div>');
+                }
+
+            };
+
+            /*------------ Declare a function on the chat hub so the server can invoke it for All Client Chat------------------*/
+            chat.client.addChatMessage = function (name, message) {
+
+
+                $('#messagesClient').append('<div class="bubble-left">' + name + ' : ' + message + '<br>' + currentTime() + '</div>');
+
+            };
+
+            $.connection.hub.start(function () {
+                //Group Creating With Connection ID for Group Chat
+                if ($('#txtGroupName').val().length != 0) {
+
+                    //Just for display joined group name
+                    $('#joinedGroup,.joinedGroup').text($('#txtGroupName').val());
+
+                    // Save data to sessionStorage
+                    //sessionStorage.setItem('GroupName', $('#txtGroupName').val());
+                    chat.server.joinGroup($('#txtGroupName').val());
+
+                }
+            });
+
+            // Start the connection
+            $.connection.hub.start().done(function () {
+                //Display Connection ID to USER
+                $("#connId").text($.connection.hub.id);
+                console.log('Now connected, connection ID =' + $.connection.hub.id);
+                //call function for taking UserName
+                userName()
+
+                /*--------------FOR GROUP CHAT When try to send message-------------------------*/
+                $("#broadcastGroupMessage").click(function () {
+                    let userFullName = $('#txtName').val().length != 0 ? $('#txtName').val() : userName();
+                    console.log("User Name : ", userFullName);
+                    if ($('#txtGroupName').val().length != 0 && $('#txtName').val().length != 0 && $('#txtMessage').val().length != 0) {
+
+                        // Get saved data (Group Name) from sessionStorage or from textfiled or hiddenfield
+                        /*NOTE: If Browser does Not Support sessionStorage then use input type field hidden to get value*/
+                        //var dataGroupName = sessionStorage.getItem('GroupName');
+                        var dataGroupName = $('#joinedGroup').text();
+                        //IF SAME CHAT GROUP THEN DONT CREATE NEW CHAT ROOM OTHERWISE CREATE NEW CHAT ROOM
+                        if ($('#txtGroupName').val() != dataGroupName) {
+                            //Before Joining into / Creating new group . Removing user from Current joined default group
+                            let isConfirm = confirm('You will be removed from Default Group : ' + dataGroupName + '\nAre you sure ?');
+                            if (isConfirm) {
+
+                                //Delete User From default Group
+                                chat.server.deleteUserFromGroup(dataGroupName);
+
+                                //Create New Chat Room
+                                chat.server.joinGroup($('#txtGroupName').val());
+                                // Save data to sessionStorage
+                                //sessionStorage.setItem('GroupName', $('#txtGroupName').val());
+                                // OR
+                                //Just for display joined group name
+                                $('#joinedGroup,.joinedGroup').text($('#txtGroupName').val());
+
+                                //empty() if any previous group chat history
+
+                                $('#messagesGroup').empty().append('<div class="bubble-right">' + $('#txtName').val() + " : " + $('#txtMessage').val() + '<br>' + currentTime() + '</div>');
+                                // Call the chatGroup method on the server
+                                chat.server.sendGroupMessage({ Name: $('#txtName').val(), Message: $('#txtMessage').val(), GroupName: $('#txtGroupName').val() });
+                                $('#txtMessage').val('');
+                            }
+
+                        } else {
+
+                            $('#messagesGroup').append('<div class="bubble-right">' + $('#txtName').val() + " : " + $('#txtMessage').val() + '<br>' + currentTime() + '</div>');
+                            // Call the chatGroup method on the server
+                            chat.server.sendGroupMessage({ Name: $('#txtName').val(), Message: $('#txtMessage').val(), GroupName: $('#txtGroupName').val() });
+                            $('#txtMessage').val('');
+                        }
+
+                    } else {
+
+                        alert('Group Name,Your Name and Message are Required');
+                    }
+                });
+
+                /*------------------------FOR PRIVATE CHAT When try to send message-----------------------------------------*/
+                $("#broadcastPvtMessage").click(function () {
+                    let userFullName = $('#txtName').val().length != 0 ? $('#txtName').val() : userName();
+                    console.log("User Name : ", userFullName);
+
+                    if ($('#txtFriendUniqueId').val().length != 0 && $('#txtName').val().length != 0 && $('#txtMessagePvt').val().length != 0) {
+                        //Just For display to whom with private conv.
+                        $('.txtFriendUniqueId').text($('#txtFriendUniqueId').val());
+                        $('#messagesPvt').append('<div class="bubble-right">' + $('#txtName').val() + " : " + $('#txtMessagePvt').val() + '<br>' + currentTime() + '</div>');
+                        // Call the chatGroup method on the server
+                        chat.server.sendPrivateMessage({ Name: $('#txtName').val(), Message: $('#txtMessagePvt').val(), FriendUniqueId: $('#txtFriendUniqueId').val() });
+                        //Clear textBox message after sending message.
+                        $('#txtMessagePvt').val('');
+                    } else {
+
+                        alert('Friend Unique Connection ID,\nYour Name and Message are Required');
+                    }
+                });
+
+                /*------------------------FOR Client CHAT When try to send message-----------------------------------------*/
+                $("#broadcastClientMessage").click(function () {
+                    let userFullName = $('#txtName').val().length != 0 ? $('#txtName').val() : userName();
+                    console.log("User Name : ", userFullName);
+
+                    if ($('#txtName').val().length != 0 && $('#txtMessageClient').val().length != 0) {
+
+                        $('#messagesClient').append('<div class="bubble-right">' + $('#txtName').val() + " : " + $('#txtMessageClient').val() + '<br>' + currentTime() + '</div>');
+                        // Call the chatGroup method on the server
+                        chat.server.sendChatMessage($.connection.hub.id, $('#txtName').val(), $('#txtMessageClient').val());
+                        //Clear textBox message after sending message.
+                        $('#txtMessageClient').val('');
+                    } else {
+
+                        alert('Your Name and Message are Required');
+                    }
+                });
+
+                //Any Error
+            }).fail(function (e) {
+                console.log(e);
+            });
+        });
+        //Return Current Time In chat text
+        function currentTime() {
+            return new Date().toLocaleString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        // Get the user name and store it to prepend to messages.
+        function userName() {
+            return swal({
+                title: "Lets Chat!",
+                text: "<span style='color:#f8bb86;font-weight:700;'>Enter your name:</span>",
+                type: "input",
+                html: true,
+                showCancelButton: true,
+                closeOnConfirm: true,
+                animation: "slide-from-top",
+                inputPlaceholder: "Enter your name"
+            },
+                function (inputValue) {
+
+                    if (inputValue === false || inputValue === "") {
+                        console.log("Entered Name : ", inputValue);
+                        return false;
+                    } else {
+
+                        console.log("Entered Name : ", inputValue);
+                        $('#txtName').val(inputValue);
+                        $('.txtName').text(inputValue);
+
+                        //ajaxCall
+                        var data = { userName: $('#txtName').val(), connectionID: $.connection.hub.id }
+                        console.log("dataToSend", JSON.stringify(data));
+                        $.ajax({
+                            type: "POST",
+                            url: "/Home/ajaxSenderUserName",
+                            data: JSON.stringify(data),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: function (response) {
+                                console.log("Response From Server : ", response)
+                            },
+                            failure: function (response) {
+                                //alert(response.responseText);
+                            },
+                            error: function (response) {
+                                //alert(response.responseText);
+                            }
+                        });
+                    }
+
+                });
+        }
+        function alertConnectionIdCopied() {
+            swal("Good job!", "Connection ID copied!", "success");
+        }
+        //Script for Copy Connection ID to clipboard
+        $("#copyId").click(function () {
+            try {
+                var copyTextarea = $("#connId");
+                var textcopied = copyTextarea.text();
+                var connId = document.createElement('input');
+                document.body.appendChild(connId);
+                connId.value = textcopied;
+                connId.select();
+                var successful = document.execCommand("copy", false);
+                successful ? alertConnectionIdCopied() : false;
+                var msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Copying text command was ' + msg);
+                console.log('Copied text is ' + connId.value);
+
+            } catch (err) {
+                console.log('Oops, unable to copy');
+            } finally {
+                connId.remove();
+            }
+        })
+
+    </script>
+}
