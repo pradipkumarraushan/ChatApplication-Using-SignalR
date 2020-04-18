@@ -5,9 +5,9 @@ SignalR is an open and free library which can be used to have real-time function
 
 # Available Features : 
 
-# 1.Group Chat (Chat with only those users who joined particular group.)
-# 2.Private Chat
-# 3.Client Chat (Chat With All users who is currently active on your Chat application.)
+1.Group Chat (Chat with only those users who joined particular group.)
+2.Private Chat
+3.Client Chat (Chat With All users who is currently active on your Chat application.)
 
 # DEMO
 
